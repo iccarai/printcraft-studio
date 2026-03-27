@@ -7,13 +7,6 @@ const BASE_URL = 'https://api.printify.com/v1';
 if (!PRINTIFY_API_KEY) throw new Error('Missing PRINTIFY_API_KEY');
 if (!PRINTIFY_SHOP_ID) throw new Error('Missing PRINTIFY_SHOP_ID');
 
-const PrintAreaSchema = z.object({
-  x: z.number(),
-  y: z.number(),
-  width: z.number(),
-  height: z.number(),
-});
-
 const BlueprintSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -21,19 +14,9 @@ const BlueprintSchema = z.object({
   brand: z.string(),
   model: z.string(),
   images: z.array(z.string()),
-});
+}).passthrough();
 
 const BlueprintListSchema = z.array(BlueprintSchema);
-
-const PrintProviderSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  location: z.object({
-    address1: z.string(),
-    city: z.string(),
-    country: z.string(),
-  }).passthrough(),
-}).passthrough();
 
 const VariantSchema = z.object({
   id: z.number(),
@@ -44,17 +27,17 @@ const VariantSchema = z.object({
       position: z.string(),
       height: z.number(),
       width: z.number(),
-    })
+    }).passthrough()
   ),
   cost: z.number(),
   enabled: z.boolean(),
-});
+}).passthrough();
 
 const PrintProviderVariantsSchema = z.object({
   id: z.number(),
   title: z.string(),
   variants: z.array(VariantSchema),
-});
+}).passthrough();
 
 const UploadedImageSchema = z.object({
   id: z.string(),
@@ -65,7 +48,7 @@ const UploadedImageSchema = z.object({
   mime_type: z.string(),
   preview_url: z.string(),
   upload_time: z.string(),
-});
+}).passthrough();
 
 const CreatedProductSchema = z.object({
   id: z.string(),
@@ -73,10 +56,9 @@ const CreatedProductSchema = z.object({
   description: z.string(),
   visible: z.boolean(),
   is_locked: z.boolean(),
-});
+}).passthrough();
 
 export type Blueprint = z.infer<typeof BlueprintSchema>;
-export type PrintProvider = z.infer<typeof PrintProviderSchema>;
 export type Variant = z.infer<typeof VariantSchema>;
 export type PrintProviderVariants = z.infer<typeof PrintProviderVariantsSchema>;
 export type UploadedImage = z.infer<typeof UploadedImageSchema>;
@@ -92,6 +74,18 @@ export interface PublishProductInput {
   retailPrice: number;
   publishNow: boolean;
   tags: string[];
+}
+
+export interface PrintProvider {
+  id: number;
+  title: string;
+  location: {
+    address1: string;
+    city: string;
+    country: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
 }
 
 async function printifyFetch<T>(
@@ -124,6 +118,7 @@ async function printifyFetch<T>(
   const parsed = schema.safeParse(json);
   if (!parsed.success) {
     console.error('[Printify] Schema mismatch:', parsed.error.flatten());
+    console.error('[Printify] Raw response:', JSON.stringify(json).slice(0, 500));
     throw new PrintifyError(0, path, 'Response failed schema validation');
   }
 
@@ -166,12 +161,24 @@ export class PrintifyService {
   static async getPrintProviders(
     blueprintId: number
   ): Promise<PrintProvider[]> {
-    return printifyFetch(
-      `/catalog/blueprints/${blueprintId}/print_providers.json`,
-      { method: 'GET' },
-      z.array(PrintProviderSchema),
-      3600
+    const res = await fetch(
+      `${BASE_URL}/catalog/blueprints/${blueprintId}/print_providers.json`,
+      {
+        headers: {
+          Authorization: `Bearer ${PRINTIFY_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        next: { revalidate: 3600 },
+      }
     );
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new PrintifyError(res.status, `/catalog/blueprints/${blueprintId}/print_providers.json`, body);
+    }
+
+    const json = await res.json();
+    return json as PrintProvider[];
   }
 
   static async uploadImage(
