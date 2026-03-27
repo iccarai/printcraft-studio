@@ -299,7 +299,7 @@ export default function Preview({
           >
             {isPublishing
               ? 'Sending to print...'
-              : 'Approve and send to Printify'
+              : 'Order now!'
             }
           </button>
 
