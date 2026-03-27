@@ -18,27 +18,6 @@ const BlueprintSchema = z.object({
 
 const BlueprintListSchema = z.array(BlueprintSchema);
 
-const VariantSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  options: z.record(z.string()),
-  placeholders: z.array(
-    z.object({
-      position: z.string(),
-      height: z.number(),
-      width: z.number(),
-    }).passthrough()
-  ),
-  cost: z.number(),
-  enabled: z.boolean(),
-}).passthrough();
-
-const PrintProviderVariantsSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  variants: z.array(VariantSchema),
-}).passthrough();
-
 const UploadedImageSchema = z.object({
   id: z.string(),
   file_name: z.string(),
@@ -59,10 +38,36 @@ const CreatedProductSchema = z.object({
 }).passthrough();
 
 export type Blueprint = z.infer<typeof BlueprintSchema>;
-export type Variant = z.infer<typeof VariantSchema>;
-export type PrintProviderVariants = z.infer<typeof PrintProviderVariantsSchema>;
 export type UploadedImage = z.infer<typeof UploadedImageSchema>;
 export type CreatedProduct = z.infer<typeof CreatedProductSchema>;
+
+export interface PrintProvider {
+  id: number;
+  title: string;
+  [key: string]: unknown;
+}
+
+export interface Variant {
+  id: number;
+  title: string;
+  options: Record<string, string>;
+  placeholders: Array<{
+    position: string;
+    height: number;
+    width: number;
+    [key: string]: unknown;
+  }>;
+  cost: number;
+  enabled: boolean;
+  [key: string]: unknown;
+}
+
+export interface PrintProviderVariants {
+  id: number;
+  title: string;
+  variants: Variant[];
+  [key: string]: unknown;
+}
 
 export interface PublishProductInput {
   title: string;
@@ -74,18 +79,6 @@ export interface PublishProductInput {
   retailPrice: number;
   publishNow: boolean;
   tags: string[];
-}
-
-export interface PrintProvider {
-  id: number;
-  title: string;
-  location: {
-    address1: string;
-    city: string;
-    country: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
 }
 
 async function printifyFetch<T>(
@@ -114,7 +107,6 @@ async function printifyFetch<T>(
   }
 
   const json = await res.json();
-
   const parsed = schema.safeParse(json);
   if (!parsed.success) {
     console.error('[Printify] Schema mismatch:', parsed.error.flatten());
@@ -123,6 +115,31 @@ async function printifyFetch<T>(
   }
 
   return parsed.data;
+}
+
+async function printifyRawFetch(
+  path: string,
+  cacheSeconds = 0
+): Promise<unknown> {
+  const url = `${BASE_URL}${path}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${PRINTIFY_API_KEY}`,
+    },
+    next: cacheSeconds > 0
+      ? { revalidate: cacheSeconds }
+      : { revalidate: 0 },
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new PrintifyError(res.status, path, body);
+  }
+
+  return await res.json();
 }
 
 export class PrintifyError extends Error {
@@ -146,39 +163,25 @@ export class PrintifyService {
     );
   }
 
+  static async getPrintProviders(
+    blueprintId: number
+  ): Promise<PrintProvider[]> {
+    const json = await printifyRawFetch(
+      `/catalog/blueprints/${blueprintId}/print_providers.json`,
+      3600
+    );
+    return json as PrintProvider[];
+  }
+
   static async getProviderVariants(
     blueprintId: number,
     printProviderId: number
   ): Promise<PrintProviderVariants> {
-    return printifyFetch(
+    const json = await printifyRawFetch(
       `/catalog/blueprints/${blueprintId}/print_providers/${printProviderId}/variants.json`,
-      { method: 'GET' },
-      PrintProviderVariantsSchema,
       3600
     );
-  }
-
-  static async getPrintProviders(
-    blueprintId: number
-  ): Promise<PrintProvider[]> {
-    const res = await fetch(
-      `${BASE_URL}/catalog/blueprints/${blueprintId}/print_providers.json`,
-      {
-        headers: {
-          Authorization: `Bearer ${PRINTIFY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        next: { revalidate: 3600 },
-      }
-    );
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new PrintifyError(res.status, `/catalog/blueprints/${blueprintId}/print_providers.json`, body);
-    }
-
-    const json = await res.json();
-    return json as PrintProvider[];
+    return json as PrintProviderVariants;
   }
 
   static async uploadImage(
@@ -247,7 +250,6 @@ export class PrintifyService {
     }
 
     const productUrl = `https://printify.com/app/store/products/${product.id}/edit`;
-
     return { product, productUrl };
   }
 
