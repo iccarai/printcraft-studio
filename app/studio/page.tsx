@@ -1,0 +1,511 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import Uploader, { type UploadedPhoto } from '@/components/Uploader';
+import StyleSelector from '@/components/StyleSelector';
+import Preview, {
+  type PreviewStatus,
+  type ProcessedDesign,
+} from '@/components/Preview';
+import type { DesignOptions } from '@/lib/ai';
+
+type StudioStep = 'upload' | 'style' | 'preview' | 'complete';
+
+interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+
+function useToast() {
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = useCallback(
+    (type: ToastMessage['type'], message: string) => {
+      const id = `${Date.now()}-${Math.random()}`;
+      setToasts((prev) => [...prev, { id, type, message }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 5000);
+    },
+    []
+  );
+
+  return { toasts, addToast };
+}
+
+function StepIndicator({ step }: { step: StudioStep }) {
+  const steps: { key: StudioStep; label: string }[] = [
+    { key: 'upload', label: 'Upload' },
+    { key: 'style', label: 'Style' },
+    { key: 'preview', label: 'Preview' },
+    { key: 'complete', label: 'Done' },
+  ];
+
+  const currentIndex = steps.findIndex((s) => s.key === step);
+
+  return (
+    <div className="flex items-center justify-center gap-0 mb-8">
+      {steps.map((s, i) => (
+        <div key={s.key} className="flex items-center">
+          <div className="flex flex-col items-center gap-1">
+            <div
+              className={`
+                w-8 h-8 rounded-full flex items-center justify-center
+                text-xs font-medium transition-all
+                ${i < currentIndex
+                  ? 'bg-violet-600 text-white'
+                  : i === currentIndex
+                  ? 'bg-violet-600 text-white ring-4 ring-violet-600/20'
+                  : 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                }
+              `}
+            >
+              {i < currentIndex ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="3"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                i + 1
+              )}
+            </div>
+            <span
+              className={`
+                text-xs transition-all
+                ${i === currentIndex
+                  ? 'text-violet-400'
+                  : i < currentIndex
+                  ? 'text-zinc-400'
+                  : 'text-zinc-600'
+                }
+              `}
+            >
+              {s.label}
+            </span>
+          </div>
+
+          {i < steps.length - 1 && (
+            <div
+              className={`
+                w-16 h-px mx-2 mb-4 transition-all
+                ${i < currentIndex ? 'bg-violet-600' : 'bg-zinc-700'}
+              `}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function StudioPage() {
+  const [step, setStep] = useState<StudioStep>('upload');
+  const [uploadedPhoto, setUploadedPhoto] = useState<UploadedPhoto | null>(null);
+  const [designOptions, setDesignOptions] = useState<DesignOptions | null>(null);
+  const [processedDesign, setProcessedDesign] = useState<ProcessedDesign | null>(null);
+  const [previewStatus, setPreviewStatus] = useState<PreviewStatus>('idle');
+  const [previewError, setPreviewError] = useState<string | undefined>();
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [publishedProductUrl, setPublishedProductUrl] = useState<string | null>(null);
+  const { toasts, addToast } = useToast();
+
+  const handleUploadComplete = useCallback((photo: UploadedPhoto) => {
+    setUploadedPhoto(photo);
+    setStep('style');
+  }, []);
+
+  const handleUploadError = useCallback((message: string) => {
+    addToast('error', message);
+  }, [addToast]);
+
+  const handleStyleSubmit = useCallback(async (options: DesignOptions) => {
+    if (!uploadedPhoto) return;
+
+    setDesignOptions(options);
+    setStep('preview');
+    setPreviewStatus('processing');
+    setPreviewError(undefined);
+    setProcessedDesign(null);
+
+    try {
+      const response = await fetch('/api/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: uploadedPhoto.base64,
+          imageMime: uploadedPhoto.mimeType,
+          options,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Processing failed');
+      }
+
+      setProcessedDesign({
+        base64Image: data.base64Image,
+        dataUrl: data.dataUrl,
+        blobUrl: data.blobUrl,
+        promptUsed: data.promptUsed,
+      });
+
+      setPreviewStatus('complete');
+      addToast('success', 'Your portrait is ready!');
+
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : 'Portrait generation failed. Please try again.';
+      setPreviewError(message);
+      setPreviewStatus('error');
+      addToast('error', message);
+    }
+  }, [uploadedPhoto, addToast]);
+
+  const handleApprove = useCallback(async () => {
+    if (!processedDesign || !designOptions || !uploadedPhoto) return;
+
+    setIsPublishing(true);
+
+    try {
+      const response = await fetch('/api/printify/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: `order_${Date.now()}`,
+          blobUrl: processedDesign.blobUrl,
+          blueprintId: 536,
+          printProviderId: 3,
+          variantIds: [45641],
+          title: buildProductTitle(designOptions),
+          description: '',
+          retailPrice: 5500,
+          tags: [],
+          publishNow: false,
+          appliedOptions: designOptions,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Publish failed');
+      }
+
+      setPublishedProductUrl(data.productUrl);
+      setStep('complete');
+      addToast('success', 'Product saved to Printify!');
+
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : 'Failed to publish. Please try again.';
+      addToast('error', message);
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [processedDesign, designOptions, uploadedPhoto, addToast]);
+
+  const handleReject = useCallback(() => {
+    setProcessedDesign(null);
+    setPreviewStatus('idle');
+    setPreviewError(undefined);
+    if (uploadedPhoto) {
+      setStep('style');
+    } else {
+      setStep('upload');
+    }
+  }, [uploadedPhoto]);
+
+  const handleDownload = useCallback(async () => {
+    if (!processedDesign) return;
+
+    setIsDownloading(true);
+
+    try {
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: `export_${Date.now()}`,
+          base64Image: processedDesign.base64Image,
+          format: 'png',
+          quality: 'print',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Download failed');
+      }
+
+      const link = document.createElement('a');
+      link.href = data.downloadUrl;
+      link.download = data.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      addToast('success', 'Download started!');
+
+    } catch (err) {
+      const message = err instanceof Error
+        ? err.message
+        : 'Download failed. Please try again.';
+      addToast('error', message);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [processedDesign, addToast]);
+
+  const handleReset = useCallback(() => {
+    setStep('upload');
+    setUploadedPhoto(null);
+    setDesignOptions(null);
+    setProcessedDesign(null);
+    setPreviewStatus('idle');
+    setPreviewError(undefined);
+    setIsPublishing(false);
+    setIsDownloading(false);
+    setPublishedProductUrl(null);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <header className="border-b border-zinc-800 px-6 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </div>
+            <span className="font-medium text-white">PrintCraft Studio</span>
+          </div>
+          {step !== 'upload' && (
+            <button
+              onClick={handleReset}
+              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Start over
+            </button>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-6 py-10">
+        <StepIndicator step={step} />
+
+        {step === 'upload' && (
+          <div className="flex flex-col gap-6">
+            <div className="text-center">
+              <h1 className="text-2xl font-medium text-white">
+                Create your couple portrait
+              </h1>
+              <p className="text-zinc-400 text-sm mt-2">
+                Upload a photo and we'll turn it into a custom caricature
+                printed on your choice of product.
+              </p>
+            </div>
+            <Uploader
+              onUploadComplete={handleUploadComplete}
+              onUploadError={handleUploadError}
+            />
+          </div>
+        )}
+
+        {step === 'style' && (
+          <div className="flex flex-col gap-6">
+            <div className="text-center">
+              <h1 className="text-2xl font-medium text-white">
+                Choose your style
+              </h1>
+              <p className="text-zinc-400 text-sm mt-2">
+                Pick an art style and add personal details to make
+                it truly unique.
+              </p>
+            </div>
+            {uploadedPhoto && (
+              <div className="flex items-center gap-3 bg-zinc-800/60 rounded-xl p-3">
+                <img
+                  src={uploadedPhoto.url}
+                  alt="Your uploaded photo"
+                  className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                />
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-medium truncate">
+                    {uploadedPhoto.fileName}
+                  </p>
+                  <p className="text-zinc-500 text-xs mt-0.5">
+                    {uploadedPhoto.sizeKB}KB · Ready to process
+                  </p>
+                </div>
+                <button
+                  onClick={() => setStep('upload')}
+                  className="ml-auto flex-shrink-0 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  Change
+                </button>
+              </div>
+            )}
+            <StyleSelector
+              hasPhoto={!!uploadedPhoto}
+              onSubmit={handleStyleSubmit}
+            />
+          </div>
+        )}
+
+        {step === 'preview' && (
+          <div className="flex flex-col gap-6">
+            <div className="text-center">
+              <h1 className="text-2xl font-medium text-white">
+                {previewStatus === 'processing'
+                  ? 'Creating your portrait...'
+                  : previewStatus === 'complete'
+                  ? 'Your portrait is ready'
+                  : previewStatus === 'error'
+                  ? 'Something went wrong'
+                  : 'Preview'
+                }
+              </h1>
+              {previewStatus === 'complete' && (
+                <p className="text-zinc-400 text-sm mt-2">
+                  Review your portrait below. Approve to send to
+                  Printify or download the file directly.
+                </p>
+              )}
+            </div>
+            <Preview
+              status={previewStatus}
+              originalPhoto={uploadedPhoto}
+              processedDesign={processedDesign}
+              designOptions={designOptions}
+              errorMessage={previewError}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onDownload={handleDownload}
+              isPublishing={isPublishing}
+              isDownloading={isDownloading}
+            />
+          </div>
+        )}
+
+        {step === 'complete' && (
+          <div className="flex flex-col items-center gap-6 py-8 text-center">
+            <div className="
+              w-20 h-20 rounded-full bg-violet-600/20
+              border border-violet-600/40
+              flex items-center justify-center
+            ">
+              <svg width="32" height="32" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className="text-violet-400">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-2xl font-medium text-white">
+                Portrait saved to Printify
+              </h1>
+              <p className="text-zinc-400 text-sm mt-2 max-w-sm">
+                Your product has been saved as a draft. Review it in
+                Printify and publish when you're ready.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              {publishedProductUrl && (
+                <a
+                  href={publishedProductUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="
+                    w-full py-3 rounded-lg text-sm font-medium
+                    bg-violet-600 hover:bg-violet-500 text-white
+                    transition-all text-center
+                  "
+                >
+                  Review in Printify →
+                </a>
+              )}
+              <button
+                onClick={handleReset}
+                className="
+                  w-full py-3 rounded-lg text-sm font-medium
+                  border border-zinc-700 text-zinc-300
+                  hover:border-zinc-500 hover:text-white
+                  transition-all
+                "
+              >
+                Create another portrait
+              </button>
+            </div>
+            <div className="bg-zinc-800/60 rounded-xl p-4 text-left w-full max-w-sm">
+              <p className="text-zinc-400 text-xs font-medium mb-3 uppercase tracking-wider">
+                What's next
+              </p>
+              {[
+                'Review the draft product in Printify',
+                'Check print area placement looks correct',
+                'Set your variants and pricing',
+                'Publish to your connected Etsy shop',
+              ].map((item, i) => (
+                <div key={item} className="flex items-start gap-2 mb-2">
+                  <span className="text-xs text-zinc-600 font-medium mt-0.5 w-4 flex-shrink-0">
+                    {i + 1}.
+                  </span>
+                  <p className="text-zinc-400 text-xs">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`
+              px-4 py-3 rounded-xl text-sm font-medium
+              shadow-lg border transition-all max-w-xs
+              ${toast.type === 'success'
+                ? 'bg-zinc-900 border-violet-600/40 text-white'
+                : toast.type === 'error'
+                ? 'bg-zinc-900 border-red-600/40 text-red-300'
+                : 'bg-zinc-900 border-zinc-700 text-zinc-300'
+              }
+            `}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function buildProductTitle(options: DesignOptions): string {
+  const styleLabels: Record<string, string> = {
+    caricature: 'Caricature',
+    cartoon: 'Cartoon',
+    sketch: 'Pencil Sketch',
+    comic: 'Comic Art',
+  };
+
+  const style = styleLabels[options.artStyle] ?? 'Portrait';
+
+  if (options.partnerName1 && options.partnerName2) {
+    return `Custom Couple ${style} — ${options.partnerName1} & ${options.partnerName2}`;
+  }
+
+  return `Custom Couple ${style} Portrait`;
+}
