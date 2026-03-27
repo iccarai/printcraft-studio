@@ -32,8 +32,8 @@ const PrintProviderSchema = z.object({
     address1: z.string(),
     city: z.string(),
     country: z.string(),
-  }),
-});
+  }).passthrough(),
+}).passthrough();
 
 const VariantSchema = z.object({
   id: z.number(),
