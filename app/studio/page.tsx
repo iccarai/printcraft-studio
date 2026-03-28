@@ -255,7 +255,7 @@ export default function StudioPage() {
           description: selectedProduct.description,
           retailPrice: selectedProduct.retailPrice,
           tags: ['couples gift', 'custom portrait', 'caricature', selectedProduct.id],
-          publishNow: false,
+          publishNow: true,
           appliedOptions: designOptions,
         }),
       });
@@ -268,7 +268,7 @@ export default function StudioPage() {
 
       setPublishedProductUrl(data.productUrl);
       setStep('complete');
-      addToast('success', `${selectedProduct.label} saved to Printify!`);
+      addToast('success', `${selectedProduct.label} published to Etsy!`);
 
     } catch (err) {
       const message = err instanceof Error
@@ -515,11 +515,11 @@ export default function StudioPage() {
             </div>
             <div>
               <h1 className="text-2xl font-medium text-white">
-                Portrait saved to Printify
+                Portrait published to Etsy
               </h1>
               <p className="text-zinc-400 text-sm mt-2 max-w-sm">
-                Your product has been saved as a draft. Review it in
-                Printify and publish when you're ready.
+                Your product is now live on Etsy. Review the listing and
+                make any final adjustments.
               </p>
             </div>
             <div className="flex flex-col gap-2 w-full max-w-xs">
@@ -534,7 +534,7 @@ export default function StudioPage() {
                     transition-all text-center
                   "
                 >
-                  Review in Printify →
+                  View on Etsy →
                 </a>
               )}
               <button
@@ -554,10 +554,10 @@ export default function StudioPage() {
                 What's next
               </p>
               {[
-                'Review the draft product in Printify',
+                'Review the listing on Etsy',
                 'Check print area placement looks correct',
-                'Set your variants and pricing',
-                'Publish to your connected Etsy shop',
+                'Confirm your variants and pricing',
+                'Share your listing with customers',
               ].map((item, i) => (
                 <div key={item} className="flex items-start gap-2 mb-2">
                   <span className="text-xs text-zinc-600 font-medium mt-0.5 w-4 flex-shrink-0">
