@@ -247,9 +247,24 @@ export class PrintifyService {
 
     if (input.publishNow) {
       await PrintifyService.publishProduct(product.id);
-      const published = await PrintifyService.getProduct(product.id);
-      const external = (published as Record<string, unknown>).external as { handle?: string } | undefined;
-      const productUrl = external?.handle ?? `https://printify.com/app/store/products/${product.id}/edit`;
+
+      // Printify's Etsy sync is async — poll until external.handle appears
+      let etsyUrl: string | undefined;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const published = await PrintifyService.getProduct(product.id);
+        const external = (published as Record<string, unknown>).external as { handle?: string } | undefined;
+        console.log(`[Printify] getProduct attempt ${attempt + 1}, external:`, JSON.stringify(external));
+        if (external?.handle) {
+          etsyUrl = external.handle;
+          break;
+        }
+      }
+
+      const productUrl = etsyUrl
+        ?? process.env.ETSY_SHOP_URL
+        ?? `https://printify.com/app/store/products/${product.id}/edit`;
+      console.log(`[Printify] final productUrl: ${productUrl}`);
       return { product, productUrl };
     }
 
@@ -266,7 +281,7 @@ export class PrintifyService {
   }
 
   static async publishProduct(productId: string): Promise<void> {
-    await fetch(
+    const res = await fetch(
       `${BASE_URL}/shops/${PRINTIFY_SHOP_ID}/products/${productId}/publish.json`,
       {
         method: 'POST',
@@ -285,6 +300,11 @@ export class PrintifyService {
         }),
       }
     );
+    const body = await res.text();
+    console.log(`[Printify] publishProduct status: ${res.status}, body: ${body.slice(0, 200)}`);
+    if (!res.ok) {
+      throw new PrintifyError(res.status, 'publish', body);
+    }
   }
 
   static async getShopProducts(): Promise<unknown[]> {
