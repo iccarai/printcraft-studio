@@ -448,8 +448,8 @@ export default function StudioPage() {
               </h1>
               {previewStatus === 'complete' && (
                 <p className="text-zinc-400 text-sm mt-2">
-                  Review your portrait below. Approve to send to
-                  Printify or download the file directly.
+                  Review your portrait below. Approve to publish to
+                  Etsy or download the file directly.
                 </p>
               )}
             </div>
