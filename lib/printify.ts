@@ -247,10 +247,22 @@ export class PrintifyService {
 
     if (input.publishNow) {
       await PrintifyService.publishProduct(product.id);
+      const published = await PrintifyService.getProduct(product.id);
+      const external = (published as Record<string, unknown>).external as { handle?: string } | undefined;
+      const productUrl = external?.handle ?? `https://printify.com/app/store/products/${product.id}/edit`;
+      return { product, productUrl };
     }
 
     const productUrl = `https://printify.com/app/store/products/${product.id}/edit`;
     return { product, productUrl };
+  }
+
+  static async getProduct(productId: string): Promise<CreatedProduct> {
+    return printifyFetch(
+      `/shops/${PRINTIFY_SHOP_ID}/products/${productId}.json`,
+      { method: 'GET' },
+      CreatedProductSchema
+    );
   }
 
   static async publishProduct(productId: string): Promise<void> {
