@@ -11,6 +11,71 @@ import type { DesignOptions } from '@/lib/ai';
 
 type StudioStep = 'upload' | 'style' | 'preview' | 'complete';
 
+// ─── Printify Product Catalogue ───────────────────────────────────────────────
+interface PrintifyProduct {
+  id: string;
+  label: string;
+  emoji: string;
+  blueprintId: number;
+  printProviderId: number;
+  variantIds: number[];         // default variants to enable
+  retailPrice: number;          // cents
+  description: string;
+}
+
+const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
+  {
+    id: 'tee',
+    label: 'T-Shirt',
+    emoji: '👕',
+    blueprintId: 12,            // Unisex Jersey Short Sleeve Tee (Bella+Canvas 3001)
+    printProviderId: 99,        // Printify Choice
+    variantIds: [18052, 18053, 18054, 18055, 18056], // S, M, L, XL, 2XL (White)
+    retailPrice: 3500,
+    description: 'Bella+Canvas 3001 unisex jersey tee',
+  },
+  {
+    id: 'hoodie',
+    label: 'Hoodie',
+    emoji: '🧥',
+    blueprintId: 439,           // Three-Panel Fleece Hoodie
+    printProviderId: 3,         // Marco Fine Arts
+    variantIds: [62259, 62260, 62261, 62262, 62265, 62270, 62275], // Black + Heather Grey S/M/L
+    retailPrice: 5500,
+    description: 'Three-panel fleece pullover hoodie',
+  },
+  {
+    id: 'pillow',
+    label: 'Pillow',
+    emoji: '🛋️',
+    blueprintId: 229,           // Spun Polyester Square Pillowcase
+    printProviderId: 10,        // MWW On Demand
+    variantIds: [41632, 41635, 41638], // 16"x16", 18"x18", 20"x20"
+    retailPrice: 2800,
+    description: 'Spun polyester square pillowcase, double-sided print',
+  },
+  {
+    id: 'mug',
+    label: 'Mug',
+    emoji: '☕',
+    blueprintId: 635,           // Accent Coffee Mug (11oz, 15oz)
+    printProviderId: 99,        // Printify Choice
+    variantIds: [72180, 72182, 72183, 72184, 105883, 105885], // 11oz + 15oz, Black/Navy/Pink
+    retailPrice: 2200,
+    description: 'Accent coffee mug — 11oz & 15oz',
+  },
+  {
+    id: 'canvas',
+    label: 'Canvas',
+    emoji: '🖼️',
+    blueprintId: 937,           // Matte Canvas, Stretched, 0.75" (Multi-Size)
+    printProviderId: 105,       // Jondo
+    variantIds: [82219, 82221, 82222], // 14"x11", 20"x16", 24"x18" horizontal
+    retailPrice: 4500,
+    description: 'Matte stretched canvas, 0.75" depth',
+  },
+];
+
 interface ToastMessage {
   id: string;
   type: 'success' | 'error' | 'info';
@@ -110,7 +175,11 @@ export default function StudioPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [publishedProductUrl, setPublishedProductUrl] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string>('canvas');
   const { toasts, addToast } = useToast();
+
+  const selectedProduct = PRINTIFY_PRODUCTS.find((p) => p.id === selectedProductId)
+    ?? PRINTIFY_PRODUCTS[4];
 
   const handleUploadComplete = useCallback((photo: UploadedPhoto) => {
     setUploadedPhoto(photo);
@@ -179,13 +248,13 @@ export default function StudioPage() {
         body: JSON.stringify({
           orderId: `order_${Date.now()}`,
           blobUrl: processedDesign.blobUrl,
-          blueprintId: 536,
-          printProviderId: 3,
-          variantIds: [45641],
-          title: buildProductTitle(designOptions),
-          description: '',
-          retailPrice: 5500,
-          tags: [],
+          blueprintId: selectedProduct.blueprintId,
+          printProviderId: selectedProduct.printProviderId,
+          variantIds: selectedProduct.variantIds,
+          title: buildProductTitle(designOptions, selectedProduct.label),
+          description: selectedProduct.description,
+          retailPrice: selectedProduct.retailPrice,
+          tags: ['couples gift', 'custom portrait', 'caricature', selectedProduct.id],
           publishNow: false,
           appliedOptions: designOptions,
         }),
@@ -199,7 +268,7 @@ export default function StudioPage() {
 
       setPublishedProductUrl(data.productUrl);
       setStep('complete');
-      addToast('success', 'Product saved to Printify!');
+      addToast('success', `${selectedProduct.label} saved to Printify!`);
 
     } catch (err) {
       const message = err instanceof Error
@@ -209,7 +278,7 @@ export default function StudioPage() {
     } finally {
       setIsPublishing(false);
     }
-  }, [processedDesign, designOptions, uploadedPhoto, addToast]);
+  }, [processedDesign, designOptions, uploadedPhoto, selectedProduct, addToast]);
 
   const handleReject = useCallback(() => {
     setProcessedDesign(null);
@@ -274,6 +343,7 @@ export default function StudioPage() {
     setIsPublishing(false);
     setIsDownloading(false);
     setPublishedProductUrl(null);
+    setSelectedProductId('canvas');
   }, []);
 
   return (
@@ -383,6 +453,37 @@ export default function StudioPage() {
                 </p>
               )}
             </div>
+
+            {previewStatus === 'complete' && (
+              <div className="w-full">
+                <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">
+                  Print on
+                </p>
+                <div className="grid grid-cols-5 gap-2">
+                  {PRINTIFY_PRODUCTS.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => setSelectedProductId(product.id)}
+                      className={`
+                        flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl
+                        border text-xs font-medium transition-all
+                        ${selectedProductId === product.id
+                          ? 'border-violet-500 bg-violet-600/20 text-white'
+                          : 'border-zinc-700 bg-zinc-800/40 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                        }
+                      `}
+                    >
+                      <span className="text-xl">{product.emoji}</span>
+                      <span>{product.label}</span>
+                      <span className={`text-xs ${selectedProductId === product.id ? 'text-violet-400' : 'text-zinc-600'}`}>
+                        ${(product.retailPrice / 100).toFixed(0)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Preview
               status={previewStatus}
               originalPhoto={uploadedPhoto}
@@ -493,7 +594,7 @@ export default function StudioPage() {
   );
 }
 
-function buildProductTitle(options: DesignOptions): string {
+function buildProductTitle(options: DesignOptions, productLabel = 'Canvas'): string {
   const styleLabels: Record<string, string> = {
     caricature: 'Caricature',
     cartoon: 'Cartoon',
@@ -504,8 +605,8 @@ function buildProductTitle(options: DesignOptions): string {
   const style = styleLabels[options.artStyle] ?? 'Portrait';
 
   if (options.partnerName1 && options.partnerName2) {
-    return `Custom Couple ${style} — ${options.partnerName1} & ${options.partnerName2}`;
+    return `Custom Couple ${style} ${productLabel} — ${options.partnerName1} & ${options.partnerName2}`;
   }
 
-  return `Custom Couple ${style} Portrait`;
+  return `Custom Couple ${style} ${productLabel}`;
 }
