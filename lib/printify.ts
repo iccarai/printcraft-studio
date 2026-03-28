@@ -263,7 +263,7 @@ export class PrintifyService {
 
       const productUrl = etsyUrl
         ?? process.env.ETSY_SHOP_URL
-        ?? `https://printify.com/app/store/products/${product.id}/edit`;
+        ?? 'https://www.etsy.com/shop/PrintCraftCustomShop';
       console.log(`[Printify] final productUrl: ${productUrl}`);
       return { product, productUrl };
     }
