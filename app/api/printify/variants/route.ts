@@ -6,11 +6,12 @@ export const runtime = 'nodejs';
 export const maxDuration = 30;
 
 const PREFERRED_PROVIDERS: Record<number, number> = {
-  12:  99,   // Unisex Jersey Short Sleeve Tee → Printify Choice
-  229: 10,   // Spun Polyester Square Pillowcase → MWW On Demand
-  439: 3,    // Three-Panel Fleece Hoodie → Marco Fine Arts
-  635: 99,   // Accent Coffee Mug → Printify Choice
-  937: 105,  // Matte Canvas, Stretched 0.75" → Jondo
+  12:  99,   // Unisex Jersey Short Sleeve Tee -> Printify Choice
+  229: 10,   // Spun Polyester Square Pillowcase -> MWW On Demand
+  439: 3,    // Three-Panel Fleece Hoodie -> Marco Fine Arts
+  635: 99,   // Accent Coffee Mug -> Printify Choice
+  937: 105,  // Matte Canvas, Stretched 0.75" -> Jondo
+  // Legacy / kept for backward compat
   5:   99,
   6:   99,
   9:   2,
