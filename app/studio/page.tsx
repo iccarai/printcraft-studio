@@ -64,8 +64,8 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     printProviderId: 10,        // MWW On Demand
     variantIds: [41632, 41635, 41638], // 16"x16", 18"x18", 20"x20"
     retailPrice: 2800,
-    description: 'Spun polyester square pillowcase, double-sided print',
-    fitMode: 'fill',
+    description: 'Spun polyester square pillowcase — portrait printed on both sides',
+    fitMode: 'contain',
   },
   {
     id: 'mug',
@@ -286,7 +286,7 @@ export default function StudioPage() {
           description: selectedProduct.description,
           retailPrice: selectedProduct.retailPrice,
           tags: ['couples gift', 'custom portrait', 'caricature', selectedProduct.id],
-          publishNow: true,
+          publishNow: false,
           fitMode: selectedProduct.fitMode,
           appliedOptions: designOptions,
         }),
@@ -300,7 +300,7 @@ export default function StudioPage() {
 
       setPublishedProductUrl(data.productUrl);
       setStep('complete');
-      addToast('success', `${selectedProduct.label} published to Etsy!`);
+      addToast('success', `${selectedProduct.label} saved as draft in Printify!`);
 
     } catch (err) {
       const message = err instanceof Error
@@ -480,8 +480,8 @@ export default function StudioPage() {
               </h1>
               {previewStatus === 'complete' && (
                 <p className="text-zinc-400 text-sm mt-2">
-                  Review your portrait below. Approve to publish to
-                  Etsy or download the file directly.
+                  Review your portrait below. Approve to save as a
+                  Printify draft, or download the file directly.
                 </p>
               )}
             </div>
@@ -590,11 +590,11 @@ export default function StudioPage() {
             </div>
             <div>
               <h1 className="text-2xl font-medium text-white">
-                Portrait published to Etsy
+                Portrait saved as draft
               </h1>
               <p className="text-zinc-400 text-sm mt-2 max-w-sm">
-                Your product is now live on Etsy. Review the listing and
-                make any final adjustments.
+                Your product has been saved as a draft in Printify.
+                Review it there before publishing to your Etsy shop.
               </p>
             </div>
             <div className="flex flex-col gap-2 w-full max-w-xs">
@@ -609,7 +609,7 @@ export default function StudioPage() {
                     transition-all text-center
                   "
                 >
-                  View on Etsy →
+                  Review in Printify →
                 </a>
               )}
               <button
@@ -629,10 +629,10 @@ export default function StudioPage() {
                 What's next
               </p>
               {[
-                'Review the listing on Etsy',
-                'Check print area placement looks correct',
+                'Open Printify and review the draft product',
+                'Check the portrait placement looks correct',
                 'Confirm your variants and pricing',
-                'Share your listing with customers',
+                'Publish to your Etsy shop when ready',
               ].map((item, i) => (
                 <div key={item} className="flex items-start gap-2 mb-2">
                   <span className="text-xs text-zinc-600 font-medium mt-0.5 w-4 flex-shrink-0">

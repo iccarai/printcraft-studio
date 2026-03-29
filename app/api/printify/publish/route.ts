@@ -49,10 +49,16 @@ function buildDescription(
     .join('\n');
 
   const productDetails: Record<number, string> = {
+    // Current blueprint IDs
+    12:  `Custom couple caricature portrait printed on a premium unisex t-shirt.\n\nSoft, comfortable Bella+Canvas 3001 jersey. True to size fit. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
+    229: `Custom couple caricature portrait pillowcase.\n\nSpun polyester square cover — your portrait is printed on both the front AND the back of the same pillowcase. Comes as a single pillowcase; pillow insert not included. Available in 16"×16", 18"×18", and 20"×20".\n\nPrint method: All-over sublimation for edge-to-edge, fade-resistant colour.`,
+    439: `Custom couple caricature portrait on a cosy unisex hoodie.\n\nThree-panel fleece pullover. Kangaroo pocket. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
+    635: `Custom couple caricature portrait mug.\n\n11oz or 15oz ceramic, dishwasher and microwave safe.\n\nPrint method: Sublimation for photo-quality, fade-resistant colour.`,
+    937: `Custom couple caricature portrait canvas print.\n\nMatte gallery-wrapped stretched canvas, 0.75" depth, ready to hang. Available in multiple sizes.\n\nPrint method: Fine art giclée for museum-quality colour accuracy.`,
+    // Legacy IDs kept for backward compat
     5: `Custom couple caricature portrait printed on a premium unisex t-shirt.\n\nSoft, comfortable Bella+Canvas 3001 jersey. True to size fit. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
     6: `Custom couple caricature portrait on a cosy unisex hoodie.\n\nGildan 18500 heavy blend. Kangaroo pocket. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
-    9: `Custom couple caricature portrait pillow.\n\nSoft microfibre cover, available in multiple sizes. Insert not included.\n\nPrint method: All-over print (AOP) for edge-to-edge design.`,
-    439: `Custom couple caricature portrait mug.\n\n11oz ceramic, dishwasher and microwave safe.\n\nPrint method: Sublimation for photo-quality, fade-resistant colour.`,
+    9: `Custom couple caricature portrait pillowcase.\n\nSpun polyester cover — portrait printed on both sides of the same pillowcase. Pillow insert not included.\n\nPrint method: All-over print (AOP) for edge-to-edge design.`,
     536: `Custom couple caricature portrait canvas print.\n\nPremium gallery-wrapped canvas, ready to hang. Available in multiple sizes.\n\nPrint method: Fine art giclée for museum-quality colour accuracy.`,
   };
 
@@ -69,10 +75,15 @@ function buildTags(
   customTags: string[]
 ): string[] {
   const baseTags: Record<number, string[]> = {
+    12:  ['couple gift', 'custom tshirt', 'caricature portrait', 'boyfriend gift', 'girlfriend gift', 'anniversary gift'],
+    229: ['couple pillow', 'custom pillow', 'caricature portrait', 'couples gift', 'bedroom decor', 'anniversary gift'],
+    439: ['couple hoodie', 'custom hoodie', 'caricature portrait', 'couples gift', 'anniversary gift', 'boyfriend gift'],
+    635: ['couple mug', 'custom mug', 'caricature portrait', 'couples gift', 'funny gift', 'boyfriend gift'],
+    937: ['couple portrait', 'canvas print', 'caricature art', 'couples gift', 'wall art', 'anniversary gift', 'custom portrait'],
+    // Legacy
     5: ['couple gift', 'custom tshirt', 'caricature portrait', 'boyfriend gift', 'girlfriend gift', 'anniversary gift'],
     6: ['couple hoodie', 'custom hoodie', 'caricature portrait', 'couples gift', 'anniversary gift', 'boyfriend gift'],
     9: ['couple pillow', 'custom pillow', 'caricature portrait', 'couples gift', 'bedroom decor', 'anniversary gift'],
-    439: ['couple mug', 'custom mug', 'caricature portrait', 'couples gift', 'funny gift', 'boyfriend gift'],
     536: ['couple portrait', 'canvas print', 'caricature art', 'couples gift', 'wall art', 'anniversary gift', 'custom portrait'],
   };
 
