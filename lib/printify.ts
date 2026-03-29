@@ -79,6 +79,7 @@ export interface PublishProductInput {
   retailPrice: number;
   publishNow: boolean;
   tags: string[];
+  scale?: number;
 }
 
 async function printifyFetch<T>(
@@ -225,7 +226,7 @@ export class PrintifyService {
                   id: input.imageId,
                   x: 0.5,
                   y: 0.5,
-                  scale: 1,
+                  scale: input.scale ?? 1,
                   angle: 0,
                 },
               ],

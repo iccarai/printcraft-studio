@@ -19,6 +19,7 @@ const PublishRequestSchema = z.object({
   retailPrice: z.number().int().positive(),
   tags: z.array(z.string().max(20)).max(13).default([]),
   publishNow: z.boolean().default(false),
+  fitMode: z.enum(['contain', 'fill']).default('fill'),
   appliedOptions: z.object({
     artStyle: z.string(),
     orientation: z.string(),
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest) {
     console.log(`[/api/printify/publish] Uploading image for order ${data.orderId}`);
 
     let printifyImageId: string;
+    let printScale = 1;
     try {
       const imageResponse = await fetch(data.blobUrl);
       if (!imageResponse.ok) {
@@ -113,6 +115,30 @@ export async function POST(request: NextRequest) {
 
       printifyImageId = uploadedImage.id;
       console.log(`[/api/printify/publish] Image uploaded to Printify: ${printifyImageId}`);
+
+      // Calculate scale for contain fit mode
+      if (data.fitMode === 'contain') {
+        try {
+          const imageAR = uploadedImage.width / uploadedImage.height;
+          const variantData = await PrintifyService.getProviderVariants(
+            data.blueprintId,
+            data.printProviderId
+          );
+          const front = variantData.variants[0]?.placeholders?.find(
+            (p: { position: string }) => p.position === 'front'
+          );
+          if (front) {
+            const printAR = front.width / front.height;
+            printScale = imageAR < printAR ? imageAR / printAR : 1;
+            console.log(
+              `[/api/printify/publish] contain scale: ${printScale.toFixed(3)} ` +
+              `(imageAR=${imageAR.toFixed(3)}, printAR=${printAR.toFixed(3)})`
+            );
+          }
+        } catch {
+          console.warn('[/api/printify/publish] Could not fetch print area for scale calc, using 1');
+        }
+      }
 
     } catch (err) {
       console.error(`[/api/printify/publish] Image upload failed:`, err);
@@ -140,6 +166,7 @@ export async function POST(request: NextRequest) {
         retailPrice: data.retailPrice,
         publishNow: data.publishNow,
         tags,
+        scale: printScale,
       });
 
       console.log(

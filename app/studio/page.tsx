@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Uploader, { type UploadedPhoto } from '@/components/Uploader';
 import StyleSelector from '@/components/StyleSelector';
 import Preview, {
@@ -21,7 +21,17 @@ interface PrintifyProduct {
   variantIds: number[];         // default variants to enable
   retailPrice: number;          // cents
   description: string;
+  fitMode: 'contain' | 'fill';
 }
+
+// Approximate overlay of the print area within each Printify blueprint mockup image
+const PRINT_AREA_OVERLAY: Record<string, { top: string; left: string; width: string; height: string }> = {
+  tee:    { top: '22%', left: '27%', width: '46%', height: '38%' },
+  hoodie: { top: '22%', left: '28%', width: '44%', height: '34%' },
+  pillow: { top: '6%',  left: '6%',  width: '88%', height: '88%' },
+  mug:    { top: '28%', left: '10%', width: '76%', height: '48%' },
+  canvas: { top: '2%',  left: '2%',  width: '96%', height: '96%' },
+};
 
 const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
   {
@@ -33,6 +43,7 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     variantIds: [18052, 18053, 18054, 18055, 18056], // S, M, L, XL, 2XL (White)
     retailPrice: 3500,
     description: 'Bella+Canvas 3001 unisex jersey tee',
+    fitMode: 'contain',
   },
   {
     id: 'hoodie',
@@ -43,6 +54,7 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     variantIds: [62259, 62260, 62261, 62262, 62265, 62270, 62275], // Black + Heather Grey S/M/L
     retailPrice: 5500,
     description: 'Three-panel fleece pullover hoodie',
+    fitMode: 'contain',
   },
   {
     id: 'pillow',
@@ -53,6 +65,7 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     variantIds: [41632, 41635, 41638], // 16"x16", 18"x18", 20"x20"
     retailPrice: 2800,
     description: 'Spun polyester square pillowcase, double-sided print',
+    fitMode: 'fill',
   },
   {
     id: 'mug',
@@ -63,6 +76,7 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     variantIds: [72180, 72182, 72183, 72184, 105883, 105885], // 11oz + 15oz, Black/Navy/Pink
     retailPrice: 2200,
     description: 'Accent coffee mug — 11oz & 15oz',
+    fitMode: 'fill',
   },
   {
     id: 'canvas',
@@ -73,6 +87,7 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     variantIds: [82219, 82221, 82222], // 14"x11", 20"x16", 24"x18" horizontal
     retailPrice: 4500,
     description: 'Matte stretched canvas, 0.75" depth',
+    fitMode: 'contain',
   },
 ];
 
@@ -176,10 +191,26 @@ export default function StudioPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [publishedProductUrl, setPublishedProductUrl] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string>('canvas');
+  const [blueprintImages, setBlueprintImages] = useState<Record<number, string>>({});
   const { toasts, addToast } = useToast();
 
   const selectedProduct = PRINTIFY_PRODUCTS.find((p) => p.id === selectedProductId)
     ?? PRINTIFY_PRODUCTS[4];
+
+  useEffect(() => {
+    if (step !== 'preview') return;
+    const ids = PRINTIFY_PRODUCTS.map((p) => p.blueprintId).join(',');
+    fetch(`/api/printify/product-images?ids=${ids}`)
+      .then((r) => r.json())
+      .then((data: Record<string, string>) => {
+        const images: Record<number, string> = {};
+        for (const [id, url] of Object.entries(data)) {
+          images[Number(id)] = url;
+        }
+        setBlueprintImages(images);
+      })
+      .catch(() => {/* silently fall back to emoji */});
+  }, [step]);
 
   const handleUploadComplete = useCallback((photo: UploadedPhoto) => {
     setUploadedPhoto(photo);
@@ -256,6 +287,7 @@ export default function StudioPage() {
           retailPrice: selectedProduct.retailPrice,
           tags: ['couples gift', 'custom portrait', 'caricature', selectedProduct.id],
           publishNow: true,
+          fitMode: selectedProduct.fitMode,
           appliedOptions: designOptions,
         }),
       });
@@ -460,26 +492,69 @@ export default function StudioPage() {
                   Print on
                 </p>
                 <div className="grid grid-cols-5 gap-2">
-                  {PRINTIFY_PRODUCTS.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => setSelectedProductId(product.id)}
-                      className={`
-                        flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl
-                        border text-xs font-medium transition-all
-                        ${selectedProductId === product.id
-                          ? 'border-violet-500 bg-violet-600/20 text-white'
-                          : 'border-zinc-700 bg-zinc-800/40 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
-                        }
-                      `}
-                    >
-                      <span className="text-xl">{product.emoji}</span>
-                      <span>{product.label}</span>
-                      <span className={`text-xs ${selectedProductId === product.id ? 'text-violet-400' : 'text-zinc-600'}`}>
-                        ${(product.retailPrice / 100).toFixed(0)}
-                      </span>
-                    </button>
-                  ))}
+                  {PRINTIFY_PRODUCTS.map((product) => {
+                    const isSelected = selectedProductId === product.id;
+                    const bgImage = blueprintImages[product.blueprintId];
+                    const overlay = PRINT_AREA_OVERLAY[product.id];
+                    return (
+                      <button
+                        key={product.id}
+                        onClick={() => setSelectedProductId(product.id)}
+                        className={`
+                          relative rounded-xl overflow-hidden border transition-all
+                          aspect-square
+                          ${isSelected
+                            ? 'border-violet-500 ring-2 ring-violet-500/40'
+                            : 'border-zinc-700 hover:border-zinc-500'
+                          }
+                        `}
+                      >
+                        {/* Product background */}
+                        {bgImage ? (
+                          <img
+                            src={bgImage}
+                            alt={product.label}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+                            <span className="text-2xl">{product.emoji}</span>
+                          </div>
+                        )}
+
+                        {/* Customer design overlaid on print area */}
+                        {processedDesign && overlay && (
+                          <div
+                            className="absolute pointer-events-none"
+                            style={{ top: overlay.top, left: overlay.left, width: overlay.width, height: overlay.height }}
+                          >
+                            <img
+                              src={processedDesign.blobUrl || processedDesign.dataUrl}
+                              alt=""
+                              className={`w-full h-full ${product.fitMode === 'contain' ? 'object-contain' : 'object-cover'}`}
+                            />
+                          </div>
+                        )}
+
+                        {/* Label bar */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm py-1 px-1 text-center">
+                          <p className="text-white text-xs font-medium leading-tight">{product.label}</p>
+                          <p className={`text-xs leading-tight ${isSelected ? 'text-violet-300' : 'text-zinc-400'}`}>
+                            ${(product.retailPrice / 100).toFixed(0)}
+                          </p>
+                        </div>
+
+                        {/* Selected checkmark */}
+                        {isSelected && (
+                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-violet-600 flex items-center justify-center">
+                            <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                              <polyline points="2 6 5 9 10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
