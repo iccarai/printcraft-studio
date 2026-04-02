@@ -51,8 +51,7 @@ function buildDescription(
   const productDetails: Record<number, string> = {
     // Current blueprint IDs
     12:  `Custom couple caricature portrait printed on a premium unisex t-shirt.\n\nSoft, comfortable Bella+Canvas 3001 jersey. True to size fit. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
-    229: `Custom couple caricature portrait pillowcase.\n\nSpun polyester square cover — your portrait is printed on both the front AND the back of the same pillowcase. Comes as a single pillowcase; pillow insert not included. Available in 16"×16", 18"×18", and 20"×20".\n\nPrint method: All-over sublimation for edge-to-edge, fade-resistant colour.`,
-    439: `Custom couple caricature portrait on a cosy unisex hoodie.\n\nThree-panel fleece pullover. Kangaroo pocket. Machine washable.\n\nPrint method: Direct-to-garment (DTG) for vibrant, lasting colour.`,
+    220: `Custom couple caricature portrait throw pillow.\n\nSpun polyester square pillow — 100% polyester cover and insert included. Double-sided print. Concealed zipper. Available in 14", 16", 18", and 20".\n\nPrint method: All-over print (AOP) for edge-to-edge design.`,
     635: `Custom couple caricature portrait mug.\n\n11oz or 15oz ceramic, dishwasher and microwave safe.\n\nPrint method: Sublimation for photo-quality, fade-resistant colour.`,
     937: `Custom couple caricature portrait canvas print.\n\nMatte gallery-wrapped stretched canvas, 0.75" depth, ready to hang. Available in multiple sizes.\n\nPrint method: Fine art giclée for museum-quality colour accuracy.`,
     // Legacy IDs kept for backward compat
@@ -76,7 +75,7 @@ function buildTags(
 ): string[] {
   const baseTags: Record<number, string[]> = {
     12:  ['couple gift', 'custom tshirt', 'caricature portrait', 'boyfriend gift', 'girlfriend gift', 'anniversary gift'],
-    229: ['couple pillow', 'custom pillow', 'caricature portrait', 'couples gift', 'bedroom decor', 'anniversary gift'],
+    220: ['couple pillow', 'custom pillow', 'caricature portrait', 'couples gift', 'bedroom decor', 'anniversary gift'],
     439: ['couple hoodie', 'custom hoodie', 'caricature portrait', 'couples gift', 'anniversary gift', 'boyfriend gift'],
     635: ['couple mug', 'custom mug', 'caricature portrait', 'couples gift', 'funny gift', 'boyfriend gift'],
     937: ['couple portrait', 'canvas print', 'caricature art', 'couples gift', 'wall art', 'anniversary gift', 'custom portrait'],
