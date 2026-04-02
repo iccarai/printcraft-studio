@@ -40,7 +40,28 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     emoji: '👕',
     blueprintId: 12,            // Unisex Jersey Short Sleeve Tee (Bella+Canvas 3001)
     printProviderId: 99,        // Printify Choice
-    variantIds: [18052, 18053, 18054, 18055, 18056], // S, M, L, XL, 2XL (White)
+    variantIds: [
+      // Black (XS–4XL + 5XL)
+      18099, 18100, 18101, 18102, 18103, 18104, 18105, 18106, 101666,
+      // White (XS–4XL + 5XL)
+      18539, 18540, 18541, 18542, 18543, 18544, 18545, 18546, 101776,
+      // Navy (XS–4XL + 5XL)
+      18395, 18396, 18397, 18398, 18399, 18400, 18401, 18402, 101747,
+      // Dark Grey Heather (XS–4XL)
+      18147, 18148, 18149, 18150, 18151, 18152, 18153, 18154,
+      // Athletic Heather (XS–4XL)
+      18075, 18076, 18077, 18078, 18079, 18080, 18081, 18082,
+      // Soft Cream (XS–4XL)
+      18459, 18460, 18461, 18462, 18463, 18464, 18465, 18466,
+      // Baby Blue (XS–4XL)
+      18083, 18084, 18085, 18086, 18087, 18088, 18089, 18090,
+      // Pink (XS–4XL)
+      18435, 18436, 18437, 18438, 18439, 18440, 18441, 18442,
+      // Forest (XS–4XL)
+      18179, 18180, 18181, 18182, 18183, 18184, 18185, 18186,
+      // Canvas Red (XS–4XL)
+      18115, 18116, 18117, 18118, 18119, 18120, 18121, 18122,
+    ],
     retailPrice: 3500,
     description: 'Bella+Canvas 3001 unisex jersey tee',
     fitMode: 'contain',
@@ -51,7 +72,16 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     emoji: '🧥',
     blueprintId: 439,           // Three-Panel Fleece Hoodie
     printProviderId: 3,         // Marco Fine Arts
-    variantIds: [62259, 62260, 62261, 62262, 62265, 62270, 62275], // Black + Heather Grey S/M/L
+    variantIds: [
+      // Black (S–3XL)
+      62259, 62260, 62261, 62262, 62263, 98952,
+      // Heather Grey (S–3XL)
+      62265, 62270, 62275, 62280, 62285, 98955,
+      // Navy (S, M, XL–3XL — no L)
+      62266, 62271, 62281, 62286, 98957,
+      // White (M–3XL — no XS/S)
+      68052, 68053, 68054, 68055, 98962,
+    ],
     retailPrice: 5500,
     description: 'Three-panel fleece pullover hoodie',
     fitMode: 'contain',
@@ -60,11 +90,11 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     id: 'pillow',
     label: 'Pillow',
     emoji: '🛋️',
-    blueprintId: 229,           // Spun Polyester Square Pillowcase
+    blueprintId: 220,           // Spun Polyester Square Pillow — full pillow with insert
     printProviderId: 10,        // MWW On Demand
-    variantIds: [41632, 41635, 41638], // 16"x16", 18"x18", 20"x20"
-    retailPrice: 2800,
-    description: 'Spun polyester square pillowcase — portrait printed on both sides',
+    variantIds: [41521, 41524, 41527, 41530], // 14"x14", 16"x16", 18"x18", 20"x20"
+    description: 'Spun polyester square pillow — 100% polyester cover & insert, double-sided print, concealed zipper. 4 sizes.',
+    retailPrice: 3400,
     fitMode: 'contain',
   },
   {
@@ -73,7 +103,12 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     emoji: '☕',
     blueprintId: 635,           // Accent Coffee Mug (11oz, 15oz)
     printProviderId: 99,        // Printify Choice
-    variantIds: [72180, 72182, 72183, 72184, 105883, 105885], // 11oz + 15oz, Black/Navy/Pink
+    variantIds: [
+      // 11oz: Black, Navy, Pink, Red, Light Blue, Orange, Purple, Yellow, Light Green
+      72180, 72182, 72183, 72184, 105888, 108906, 108907, 108908, 113942,
+      // 15oz: Black, Navy, Pink, Red, Light Blue, Orange, Purple, Yellow
+      105883, 105885, 105886, 105887, 105889, 108910, 108911, 108912,
+    ],
     retailPrice: 2200,
     description: 'Accent coffee mug — 11oz & 15oz',
     fitMode: 'fill',
@@ -84,7 +119,19 @@ const PRINTIFY_PRODUCTS: PrintifyProduct[] = [
     emoji: '🖼️',
     blueprintId: 937,           // Matte Canvas, Stretched, 0.75" (Multi-Size)
     printProviderId: 105,       // Jondo
-    variantIds: [82219, 82221, 82222], // 14"x11", 20"x16", 24"x18" horizontal
+    variantIds: [
+      // Horizontal (24)
+      82218, 82219, 82220, 82221, 82222, 82223, 82224, 82225, 82226, 82227,
+      95209, 95210, 95211, 102196, 102197, 102198, 102206, 102209,
+      114699, 114700, 114701, 114705, 114707, 114709,
+      // Vertical (24)
+      82228, 82229, 82230, 82231, 82232, 82233, 82234, 82235, 82236, 82237,
+      95212, 95213, 95214, 102199, 102200, 102201, 102207, 102210,
+      114702, 114703, 114704, 114706, 114708, 114710,
+      // Square (10)
+      82238, 82239, 82240,
+      102202, 102203, 102204, 102205, 102208, 102211, 102212,
+    ],
     retailPrice: 4500,
     description: 'Matte stretched canvas, 0.75" depth',
     fitMode: 'contain',
@@ -189,7 +236,10 @@ export default function StudioPage() {
   const [previewError, setPreviewError] = useState<string | undefined>();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [publishedProductUrl, setPublishedProductUrl] = useState<string | null>(null);
+  // Set after Printify product is created — used to poll for Etsy URL
+  const [publishedProductId, setPublishedProductId] = useState<string | null>(null);
+  // Set once Printify has synced the listing to Etsy
+  const [etsyListingUrl, setEtsyListingUrl] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string>('canvas');
   const [blueprintImages, setBlueprintImages] = useState<Record<number, string>>({});
   const { toasts, addToast } = useToast();
@@ -212,7 +262,24 @@ export default function StudioPage() {
       .catch(() => {/* silently fall back to emoji */});
   }, [step]);
 
-  const handleUploadComplete = useCallback((photo: UploadedPhoto) => {
+  // ── Etsy polling: called after product creation ──────────────────────────────
+  const pollForEtsyUrl = useCallback(
+    async (productId: string) => {
+      const maxAttempts = 36; // 3 minutes at 5-second intervals
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        try {
+          const res = await fetch(`/api/printify/status?productId=${productId}`);
+          const data = (await res.json()) as { status: string; etsyListingUrl: string | null };
+          if (data.etsyListingUrl) { setEtsyListingUrl(data.etsyListingUrl); return; }
+        } catch { /* keep polling */ }
+      }
+      addToast('info', 'Your Etsy listing is still publishing — refresh in a minute.');
+    },
+    [addToast]
+  );
+
+    const handleUploadComplete = useCallback((photo: UploadedPhoto) => {
     setUploadedPhoto(photo);
     setStep('style');
   }, []);
@@ -286,7 +353,7 @@ export default function StudioPage() {
           description: selectedProduct.description,
           retailPrice: selectedProduct.retailPrice,
           tags: ['couples gift', 'custom portrait', 'caricature', selectedProduct.id],
-          publishNow: false,
+          publishNow: true,
           fitMode: selectedProduct.fitMode,
           appliedOptions: designOptions,
         }),
@@ -298,9 +365,10 @@ export default function StudioPage() {
         throw new Error(data.error ?? 'Publish failed');
       }
 
-      setPublishedProductUrl(data.productUrl);
+      setPublishedProductId(data.productId);
+      setEtsyListingUrl(null);
       setStep('complete');
-      addToast('success', `${selectedProduct.label} saved as draft in Printify!`);
+      pollForEtsyUrl(data.productId);
 
     } catch (err) {
       const message = err instanceof Error
@@ -310,7 +378,7 @@ export default function StudioPage() {
     } finally {
       setIsPublishing(false);
     }
-  }, [processedDesign, designOptions, uploadedPhoto, selectedProduct, addToast]);
+  }, [processedDesign, designOptions, uploadedPhoto, selectedProduct, pollForEtsyUrl, addToast]);
 
   const handleReject = useCallback(() => {
     setProcessedDesign(null);
@@ -374,7 +442,8 @@ export default function StudioPage() {
     setPreviewError(undefined);
     setIsPublishing(false);
     setIsDownloading(false);
-    setPublishedProductUrl(null);
+    setPublishedProductId(null);
+    setEtsyListingUrl(null);
     setSelectedProductId('canvas');
   }, []);
 
@@ -576,71 +645,46 @@ export default function StudioPage() {
 
         {step === 'complete' && (
           <div className="flex flex-col items-center gap-6 py-8 text-center">
-            <div className="
-              w-20 h-20 rounded-full bg-violet-600/20
-              border border-violet-600/40
-              flex items-center justify-center
-            ">
-              <svg width="32" height="32" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="text-violet-400">
+            <div className="w-20 h-20 rounded-full bg-violet-600/20 border border-violet-600/40 flex items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-medium text-white">
-                Portrait saved as draft
-              </h1>
+              <h1 className="text-2xl font-medium text-white">Your portrait is live!</h1>
               <p className="text-zinc-400 text-sm mt-2 max-w-sm">
-                Your product has been saved as a draft in Printify.
-                Review it there before publishing to your Etsy shop.
+                Your custom listing has been published to Etsy. Buy it before your design expires.
               </p>
             </div>
-            <div className="flex flex-col gap-2 w-full max-w-xs">
-              {publishedProductUrl && (
-                <a
-                  href={publishedProductUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    w-full py-3 rounded-lg text-sm font-medium
-                    bg-violet-600 hover:bg-violet-500 text-white
-                    transition-all text-center
-                  "
-                >
-                  Review in Printify →
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              {etsyListingUrl ? (
+                <a href={etsyListingUrl} target="_blank" rel="noopener noreferrer"
+                  className="w-full py-3.5 rounded-lg text-sm font-semibold bg-[#F1641E] hover:bg-[#d9561a] text-white transition-all text-center flex items-center justify-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1l-1 12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1L20 8a1 1 0 0 0-1-1zm-9-1a2 2 0 0 1 4 0v1h-4V6zm7.9 13H6.1L7 9h10l.9 10z"/>
+                  </svg>
+                  Buy on Etsy
                 </a>
+              ) : (
+                <div className="w-full py-3.5 rounded-lg text-sm font-medium bg-zinc-800 border border-zinc-700 text-zinc-400 flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-zinc-600 border-t-violet-400 rounded-full animate-spin" />
+                  Publishing to Etsy...
+                </div>
               )}
-              <button
-                onClick={handleReset}
-                className="
-                  w-full py-3 rounded-lg text-sm font-medium
-                  border border-zinc-700 text-zinc-300
-                  hover:border-zinc-500 hover:text-white
-                  transition-all
-                "
-              >
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-amber-950/30 border border-amber-800/40">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400 flex-shrink-0">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                <p className="text-amber-300/80 text-xs text-left">
+                  Your design is saved for{' '}
+                  <span className="font-semibold text-amber-300">24 hours</span>
+                  {' '}— buy now to lock it in before it expires.
+                </p>
+              </div>
+              <button onClick={handleReset}
+                className="w-full py-2.5 rounded-lg text-sm font-medium border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 transition-all">
                 Create another portrait
               </button>
-            </div>
-            <div className="bg-zinc-800/60 rounded-xl p-4 text-left w-full max-w-sm">
-              <p className="text-zinc-400 text-xs font-medium mb-3 uppercase tracking-wider">
-                What's next
-              </p>
-              {[
-                'Open Printify and review the draft product',
-                'Check the portrait placement looks correct',
-                'Confirm your variants and pricing',
-                'Publish to your Etsy shop when ready',
-              ].map((item, i) => (
-                <div key={item} className="flex items-start gap-2 mb-2">
-                  <span className="text-xs text-zinc-600 font-medium mt-0.5 w-4 flex-shrink-0">
-                    {i + 1}.
-                  </span>
-                  <p className="text-zinc-400 text-xs">{item}</p>
-                </div>
-              ))}
             </div>
           </div>
         )}
